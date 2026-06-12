@@ -1,0 +1,162 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #0a0e14;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #e6edf3;
+}
+
+#scene { position: fixed; inset: 0; display: block; }
+
+.hidden { display: none !important; }
+
+/* ---------- HUD / OSD ---------- */
+#hud {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  font-family: 'Consolas', 'Courier New', monospace;
+  color: #aef5b0;
+  text-shadow: 0 0 4px rgba(0,0,0,.9), 1px 1px 0 #000;
+  font-size: 16px;
+}
+
+#osd-top, #osd-bottom {
+  position: absolute; left: 0; right: 0;
+  display: flex; justify-content: space-around;
+  padding: 14px 8vw;
+}
+#osd-top { top: 0; }
+#osd-bottom { bottom: 0; }
+
+#osd-armed.armed { color: #ff5555; }
+
+#osd-center {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+#crosshair { font-size: 26px; opacity: .8; }
+#osd-message {
+  margin-top: 12px; font-size: 20px; min-height: 28px;
+  color: #ffd866;
+}
+
+#mission-panel {
+  position: absolute; top: 60px; right: 20px;
+  background: rgba(10, 14, 20, .55);
+  border: 1px solid rgba(174, 245, 176, .35);
+  border-radius: 8px;
+  padding: 10px 14px;
+  max-width: 320px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+#mission-title { font-weight: 700; color: #ffd866; margin-bottom: 4px; }
+#mission-objective { font-size: 14px; margin-bottom: 6px; }
+#mission-progress { font-size: 14px; color: #aef5b0; }
+
+.stick-box {
+  position: absolute; bottom: 70px;
+  width: 90px; height: 90px;
+  border: 1px solid rgba(174,245,176,.4);
+  border-radius: 8px;
+  background: rgba(10,14,20,.4);
+}
+#stick-left  { left: 30px; }
+#stick-right { left: 140px; }
+.stick-box span {
+  position: absolute; bottom: -20px; left: 0; right: 0;
+  text-align: center; font-size: 10px; opacity: .7;
+}
+.stick-dot {
+  position: absolute; width: 10px; height: 10px;
+  background: #ffd866; border-radius: 50%;
+  left: 40px; top: 40px;
+}
+
+/* ---------- Menus ---------- */
+#menu, #complete-overlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(13,20,33,.92), rgba(5,8,13,.97));
+  overflow-y: auto;
+  z-index: 10;
+}
+
+.menu-card {
+  width: min(680px, 92vw);
+  max-height: 92vh;
+  overflow-y: auto;
+  background: rgba(16, 22, 32, .95);
+  border: 1px solid #2b3a4f;
+  border-radius: 14px;
+  padding: 28px 32px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+.menu-card.small { width: min(420px, 90vw); text-align: center; }
+
+h1 {
+  font-size: 32px; letter-spacing: 3px;
+  background: linear-gradient(90deg, #58e6d9, #aef5b0);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 6px;
+}
+.subtitle { color: #8b98a9; margin-bottom: 22px; font-size: 15px; }
+
+h2 {
+  font-size: 15px; color: #58e6d9;
+  margin: 18px 0 10px; letter-spacing: 1px;
+}
+
+#mission-list { display: grid; gap: 10px; }
+
+.mission-btn {
+  display: flex; justify-content: space-between; align-items: center;
+  width: 100%;
+  background: #1a2433;
+  border: 1px solid #2b3a4f;
+  border-radius: 10px;
+  padding: 13px 18px;
+  color: #e6edf3;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: right;
+  transition: border-color .15s, background .15s;
+}
+.mission-btn:hover { border-color: #58e6d9; background: #20304a; }
+.mission-btn .m-name { font-weight: 600; }
+.mission-btn .m-desc { font-size: 12.5px; color: #8b98a9; margin-top: 3px; }
+.mission-btn .m-best { font-size: 12.5px; color: #ffd866; white-space: nowrap; margin-right: 12px; }
+.mission-btn.locked { opacity: .45; cursor: not-allowed; }
+
+.setting-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 7px 0; font-size: 14px;
+}
+select {
+  background: #1a2433; color: #e6edf3;
+  border: 1px solid #2b3a4f; border-radius: 6px;
+  padding: 6px 10px; font-size: 13px;
+}
+
+#controls-help table { width: 100%; font-size: 13.5px; border-collapse: collapse; }
+#controls-help td { padding: 4px 0; color: #b9c4d0; }
+#controls-help .keys {
+  text-align: left; font-family: monospace; color: #ffd866;
+  direction: ltr;
+}
+.gamepad-note { margin-top: 10px; font-size: 12.5px; color: #8b98a9; }
+.gamepad-note.connected { color: #aef5b0; }
+
+button {
+  background: linear-gradient(135deg, #1f6f64, #2b8f6e);
+  color: #fff; border: none; border-radius: 8px;
+  padding: 11px 22px; font-size: 15px; font-weight: 600;
+  cursor: pointer; margin: 8px 6px 0;
+}
+button:hover { filter: brightness(1.15); }
+#btn-menu { background: #2b3a4f; }
+
+#complete-stats { color: #b9c4d0; margin: 14px 0 6px; font-size: 15px; white-space: pre-line; }

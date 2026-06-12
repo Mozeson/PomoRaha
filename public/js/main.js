@@ -16,12 +16,22 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(95, 1, 0.05, 600); // wide FOV like FPV cams
 
+// Mobile browsers don't reliably fire 'resize' after rotation/fullscreen,
+// so we also re-check dimensions every frame (see frame()).
+let viewW = 0, viewH = 0;
+
 function resize() {
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth / window.innerHeight;
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w === viewW && h === viewH) return;
+  viewW = w; viewH = h;
+  renderer.setSize(w, h, false); // CSS keeps the canvas at 100% of the viewport
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
 }
 window.addEventListener('resize', resize);
+window.addEventListener('orientationchange', () => setTimeout(resize, 300));
+window.visualViewport?.addEventListener('resize', resize);
+document.addEventListener('fullscreenchange', () => setTimeout(resize, 100));
 resize();
 
 // ---------- Game objects ----------
@@ -206,6 +216,7 @@ let lastT = performance.now();
 
 function frame(now) {
   requestAnimationFrame(frame);
+  resize(); // no-op unless the viewport actually changed
   const dt = Math.min(0.05, (now - lastT) / 1000);
   lastT = now;
 

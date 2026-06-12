@@ -125,6 +125,15 @@ export const MISSIONS = [
     setup(world) { world.clearGates(); },
     update() { return { done: false, progress: 'טיסה חופשית — ESC לתפריט' }; },
   },
+
+  {
+    id: 'custom',
+    name: 'המפה שלי',
+    desc: 'טיסה חופשית בין הקוביות שבניתם במצב הבנייה',
+    timed: false,
+    setup(world) { world.clearGates(); },
+    update() { return { done: false, progress: 'המפה שלכם — ESC לתפריט' }; },
+  },
 ];
 
 function gateSequence(mission, ctx) {

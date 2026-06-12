@@ -74,6 +74,11 @@
       <div id="mission-list"></div>
 
       <div class="menu-section">
+        <h2>המפה שלי</h2>
+        <button id="btn-builder" class="wide-btn">🧱 מצב בנייה — הניחו קוביות בגבהים שונים ובנו מסלול משלכם</button>
+      </div>
+
+      <div class="menu-section">
         <h2>הגדרות</h2>
         <div class="setting-row">
           <label>מצב טיסה</label>
@@ -113,6 +118,18 @@
         <p class="gamepad-note" id="gamepad-status">🎮 חברו שלט (Gamepad/RC) לחוויה מלאה — Mode 2</p>
       </div>
     </div>
+  </div>
+
+  <!-- Map builder UI -->
+  <div id="builder-ui" class="hidden" dir="rtl">
+    <div id="builder-toolbar">
+      <button id="bld-place" class="tool selected">🧱 הנחה</button>
+      <button id="bld-delete" class="tool">❌ מחיקה</button>
+      <button id="bld-clear">🗑 נקה</button>
+      <span id="bld-count"></span>
+      <button id="bld-exit">✓ שמירה ויציאה</button>
+    </div>
+    <div id="builder-hint">הקשה — הנחה/מחיקה של קובייה · גרירה — סיבוב מבט · שתי אצבעות / גלגלת — זום · גרירה ימנית / WASD — תזוזה</div>
   </div>
 
   <!-- Mission complete overlay -->

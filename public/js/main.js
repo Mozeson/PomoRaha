@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Drone } from './drone.js';
-import { Input } from './input.js';
+import { Input, TouchControls } from './input.js';
 import { World } from './world.js';
 import { HUD } from './hud.js';
 import { MotorAudio } from './audio.js';
@@ -28,6 +28,7 @@ resize();
 const world = new World(scene);
 const drone = new Drone();
 const input = new Input();
+const touch = new TouchControls(input);
 const hud = new HUD();
 const audio = new MotorAudio();
 
@@ -37,8 +38,11 @@ const SPAWN = new THREE.Vector3(0, 0.08, 0);
 const settings = loadSettings();
 
 function loadSettings() {
-  let s = { flightmode: 'angle', rates: '0.75', camtilt: '20' };
+  let s = { flightmode: 'angle', rates: '0.75', camtilt: '20', device: null };
   try { s = { ...s, ...JSON.parse(localStorage.getItem('fpv-settings') || '{}') }; } catch {}
+  if (!s.device) {
+    s.device = matchMedia('(pointer: coarse)').matches ? 'mobile' : 'desktop';
+  }
   for (const key of ['flightmode', 'rates', 'camtilt']) {
     const el = document.getElementById(`set-${key}`);
     el.value = s[key];
@@ -53,6 +57,38 @@ function loadSettings() {
 function applySettings() {
   drone.mode = settings.flightmode;
   drone.rateMult = parseFloat(settings.rates);
+}
+
+// ---------- Device mode (desktop / mobile) ----------
+function applyDeviceMode() {
+  const mobile = settings.device === 'mobile';
+  document.body.classList.toggle('mobile-mode', mobile);
+  document.getElementById('touch-ui').classList.toggle('hidden', !mobile);
+  touch.enabled = mobile;
+}
+
+document.querySelectorAll('.device-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    settings.device = btn.dataset.device;
+    localStorage.setItem('fpv-settings', JSON.stringify(settings));
+    updateDeviceButtons();
+    applyDeviceMode();
+  });
+});
+
+function updateDeviceButtons() {
+  document.querySelectorAll('.device-btn').forEach((btn) => {
+    btn.classList.toggle('selected', btn.dataset.device === settings.device);
+  });
+}
+
+function enterMobileFullscreen() {
+  const el = document.documentElement;
+  if (!document.fullscreenElement && el.requestFullscreen) {
+    el.requestFullscreen()
+      .then(() => screen.orientation?.lock?.('landscape'))
+      .catch(() => {});
+  }
 }
 
 // ---------- Mission state ----------
@@ -101,7 +137,10 @@ function startMission(i) {
   elapsed = 0;
   started = false;
   hud.setMission(mission.name, mission.desc);
-  hud.setMessage('לחצו רווח לחימוש (ARM) — ואז גז בעדינות');
+  hud.setMessage(settings.device === 'mobile'
+    ? 'לחצו ARM לחימוש — ואז גז בעדינות'
+    : 'לחצו רווח לחימוש (ARM) — ואז גז בעדינות');
+  if (settings.device === 'mobile') enterMobileFullscreen();
   menuEl.classList.add('hidden');
   completeEl.classList.add('hidden');
   hud.show();
@@ -234,4 +273,6 @@ function frame(now) {
 }
 
 buildMissionList();
+updateDeviceButtons();
+applyDeviceMode();
 requestAnimationFrame(frame);

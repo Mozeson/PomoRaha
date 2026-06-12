@@ -2,7 +2,8 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>FPV Trainer — סימולטור אימון רחפן</title>
   <link rel="stylesheet" href="css/style.css">
   <script type="importmap">
@@ -42,6 +43,18 @@
     <!-- Stick position indicators (training aid) -->
     <div class="stick-box" id="stick-left"><div class="stick-dot"></div><span>THR/YAW</span></div>
     <div class="stick-box" id="stick-right"><div class="stick-dot"></div><span>PIT/ROL</span></div>
+
+    <!-- Touch controls (mobile mode) -->
+    <div id="touch-ui" class="hidden">
+      <div class="touch-stick" id="touch-left"><div class="touch-knob"></div><span>גז / פנייה</span></div>
+      <div class="touch-stick" id="touch-right"><div class="touch-knob"></div><span>הטיה</span></div>
+      <div id="touch-buttons">
+        <button id="tb-menu">☰</button>
+        <button id="tb-arm">ARM</button>
+        <button id="tb-reset">↺</button>
+      </div>
+    </div>
+    <div id="rotate-hint">🔄 סובבו את המכשיר לרוחב</div>
   </div>
 
   <!-- Main menu -->
@@ -49,6 +62,14 @@
     <div class="menu-card">
       <h1>FPV TRAINER</h1>
       <p class="subtitle">סימולטור אימון לטיסת רחפן FPV — מהבסיס ועד מיומנות מתקדמת</p>
+
+      <div class="menu-section">
+        <h2>על מה משחקים?</h2>
+        <div id="device-toggle">
+          <button class="device-btn" data-device="desktop">💻 מחשב</button>
+          <button class="device-btn" data-device="mobile">📱 פלאפון</button>
+        </div>
+      </div>
 
       <div id="mission-list"></div>
 
@@ -88,6 +109,7 @@
           <tr><td>איפוס מיקום</td><td class="keys">R</td></tr>
           <tr><td>חזרה לתפריט</td><td class="keys">ESC</td></tr>
         </table>
+        <p id="touch-help">סטיק שמאלי — גז (למעלה/למטה) ופנייה (צדדים). סטיק ימני — הטיה לכל כיוון. ARM לחימוש המנועים, ↺ לאיפוס. מומלץ לסובב את המכשיר לרוחב.</p>
         <p class="gamepad-note" id="gamepad-status">🎮 חברו שלט (Gamepad/RC) לחוויה מלאה — Mode 2</p>
       </div>
     </div>

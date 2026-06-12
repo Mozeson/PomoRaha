@@ -17,6 +17,7 @@ export class HUD {
       missionProgress: document.getElementById('mission-progress'),
       stickL: document.querySelector('#stick-left .stick-dot'),
       stickR: document.querySelector('#stick-right .stick-dot'),
+      tbArm: document.getElementById('tb-arm'),
     };
     this._msgTimeout = null;
   }
@@ -44,6 +45,7 @@ export class HUD {
     this.el.mode.textContent = drone.mode.toUpperCase();
     this.el.armed.textContent = drone.armed ? 'ARMED' : drone.crashed ? 'CRASHED' : 'DISARMED';
     this.el.armed.classList.toggle('armed', drone.armed || drone.crashed);
+    this.el.tbArm?.classList.toggle('armed', drone.armed);
 
     this.el.battery.textContent = `${drone.cellVoltage.toFixed(1)}V ${drone.batteryPct}%`;
     this.el.alt.textContent = `ALT ${drone.altitude.toFixed(1)}m`;

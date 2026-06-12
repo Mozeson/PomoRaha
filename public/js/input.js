@@ -29,6 +29,8 @@ export class Input {
 
     window.addEventListener('gamepadconnected', () => { this.gamepadConnected = true; });
     window.addEventListener('gamepaddisconnected', () => { this.gamepadConnected = false; });
+
+    this.touch = null; // set by TouchControls when device mode is mobile
   }
 
   update(dt) {
@@ -56,8 +58,14 @@ export class Input {
       menuNow = gp.buttons[9]?.pressed || false;
     }
 
-    // --- Keyboard (smoothed so flight is controllable) ---
-    if (!gpActive) {
+    // --- Touch sticks (mobile mode) ---
+    if (!gpActive && this.touch?.enabled) {
+      this.throttle = this.touch.throttle;
+      this.yaw = this.touch.yaw;
+      this.pitch = this.touch.pitch;
+      this.roll = this.touch.roll;
+    } else if (!gpActive) {
+      // --- Keyboard (smoothed so flight is controllable) ---
       const k = this.keys;
       const tTarget = k.has('KeyW') ? 1 : k.has('KeyS') ? 0 : this.throttle;
       const yTarget = (k.has('KeyD') ? 1 : 0) - (k.has('KeyA') ? 1 : 0);
@@ -86,8 +94,111 @@ export class Input {
   zeroSticks() {
     this.throttle = 0;
     this.yaw = this.pitch = this.roll = 0;
+    this.touch?.reset();
   }
 }
+
+// Dual virtual sticks (Mode 2 layout) + on-screen buttons for phones/tablets.
+// Buttons feed the same key codes the keyboard uses, so edge detection is shared.
+export class TouchControls {
+  constructor(input) {
+    input.touch = this;
+    this.enabled = false;
+    this.throttle = 0;
+    this.yaw = 0;
+    this.pitch = 0;
+    this.roll = 0;
+
+    this.leftKnob = document.querySelector('#touch-left .touch-knob');
+    this.rightKnob = document.querySelector('#touch-right .touch-knob');
+
+    // Left stick: yaw springs back, throttle holds its position (like a real TX)
+    this._bindStick(document.getElementById('touch-left'), this.leftKnob, {
+      onMove: (nx, ny) => {
+        this.yaw = nx;
+        this.throttle = (ny + 1) / 2;
+      },
+      onEnd: () => {
+        this.yaw = 0;
+        setKnob(this.leftKnob, 0, this.throttle * 2 - 1);
+      },
+    });
+
+    // Right stick: both axes spring back to center
+    this._bindStick(document.getElementById('touch-right'), this.rightKnob, {
+      onMove: (nx, ny) => {
+        this.roll = nx;
+        this.pitch = ny;
+      },
+      onEnd: () => {
+        this.roll = 0;
+        this.pitch = 0;
+        setKnob(this.rightKnob, 0, 0);
+      },
+    });
+
+    this._bindButton('tb-arm', 'Space', input);
+    this._bindButton('tb-reset', 'KeyR', input);
+    this._bindButton('tb-menu', 'Escape', input);
+
+    this.reset();
+  }
+
+  reset() {
+    this.throttle = 0;
+    this.yaw = this.pitch = this.roll = 0;
+    setKnob(this.leftKnob, 0, -1);
+    setKnob(this.rightKnob, 0, 0);
+  }
+
+  _bindStick(el, knob, handlers) {
+    let pointerId = null;
+    const move = (e) => {
+      const r = el.getBoundingClientRect();
+      const nx = clamp11(((e.clientX - r.left) / r.width) * 2 - 1);
+      const ny = clamp11(-(((e.clientY - r.top) / r.height) * 2 - 1));
+      handlers.onMove(nx, ny);
+      setKnob(knob, nx, ny);
+    };
+    el.addEventListener('pointerdown', (e) => {
+      if (pointerId !== null) return;
+      pointerId = e.pointerId;
+      el.setPointerCapture(pointerId);
+      e.preventDefault();
+      move(e);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (e.pointerId === pointerId) move(e);
+    });
+    const end = (e) => {
+      if (e.pointerId !== pointerId) return;
+      pointerId = null;
+      handlers.onEnd();
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+  }
+
+  _bindButton(id, code, input) {
+    const el = document.getElementById(id);
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      input.keys.add(code);
+    });
+    const release = () => input.keys.delete(code);
+    el.addEventListener('pointerup', release);
+    el.addEventListener('pointercancel', release);
+    el.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+}
+
+function setKnob(knob, nx, ny) {
+  if (!knob) return;
+  knob.style.left = `${50 + nx * 33}%`;
+  knob.style.top = `${50 - ny * 33}%`;
+}
+
+function clamp11(v) { return Math.max(-1, Math.min(1, v)); }
 
 function approach(cur, target, step) {
   if (cur < target) return Math.min(target, cur + step);

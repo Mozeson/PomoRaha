@@ -8,7 +8,7 @@ html, body {
   color: #e6edf3;
 }
 
-#scene { position: fixed; inset: 0; display: block; }
+#scene { position: fixed; inset: 0; display: block; touch-action: none; }
 
 .hidden { display: none !important; }
 
@@ -73,6 +73,91 @@ html, body {
   position: absolute; width: 10px; height: 10px;
   background: #ffd866; border-radius: 50%;
   left: 40px; top: 40px;
+}
+
+/* ---------- Touch controls (mobile mode) ---------- */
+.touch-stick {
+  position: absolute; bottom: 6vh;
+  width: clamp(110px, 28vmin, 190px);
+  height: clamp(110px, 28vmin, 190px);
+  border-radius: 50%;
+  border: 2px solid rgba(174, 245, 176, .45);
+  background: rgba(10, 14, 20, .35);
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+#touch-left  { left: 4vw; }
+#touch-right { right: 4vw; }
+.touch-stick span {
+  position: absolute; top: -22px; left: 0; right: 0;
+  text-align: center; font-size: 11px; opacity: .75;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+.touch-knob {
+  position: absolute; width: 38%; height: 38%;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 35% 30%, #ffe9a8, #e0b53f);
+  border-radius: 50%;
+  box-shadow: 0 3px 10px rgba(0,0,0,.55);
+}
+
+#touch-buttons {
+  position: absolute; bottom: 6vh; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 16px;
+  pointer-events: auto;
+}
+#touch-buttons button {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  font-size: 15px; font-weight: 700;
+  margin: 0; padding: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: rgba(43, 58, 79, .85);
+  border: 2px solid rgba(174, 245, 176, .4);
+}
+#tb-arm { background: rgba(179, 48, 58, .85); border-color: rgba(255, 120, 120, .6); }
+#tb-arm.armed { background: rgba(43, 143, 110, .9); border-color: #aef5b0; }
+
+#rotate-hint {
+  display: none;
+  position: absolute; inset: 0;
+  align-items: center; justify-content: center;
+  background: rgba(5, 8, 13, .88);
+  font-size: 22px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  z-index: 5;
+}
+
+#device-toggle { display: flex; gap: 10px; }
+.device-btn {
+  flex: 1; margin: 0;
+  background: #1a2433;
+  border: 1px solid #2b3a4f;
+  color: #e6edf3; font-weight: 600;
+}
+.device-btn.selected { border-color: #58e6d9; background: #20304a; }
+
+#touch-help { display: none; font-size: 13.5px; color: #b9c4d0; }
+
+body.mobile-mode .stick-box { display: none; }
+body.mobile-mode #touch-help { display: block; }
+body.mobile-mode #controls-help table { display: none; }
+body.mobile-mode #hud { font-size: 13px; }
+body.mobile-mode #osd-top, body.mobile-mode #osd-bottom { padding: 8px 4vw; }
+body.mobile-mode #mission-panel {
+  top: 36px; right: 10px;
+  max-width: 230px;
+  padding: 6px 10px;
+  font-size: 12px;
+}
+@media (orientation: portrait) {
+  body.mobile-mode #rotate-hint { display: flex; }
 }
 
 /* ---------- Menus ---------- */

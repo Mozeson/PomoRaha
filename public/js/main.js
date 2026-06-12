@@ -5,6 +5,7 @@ import { World } from './world.js';
 import { HUD } from './hud.js';
 import { MotorAudio } from './audio.js';
 import { MISSIONS, getBestTime, setBestTime } from './missions.js';
+import { Builder, loadCustomBlocks } from './builder.js';
 
 // ---------- Renderer / scene ----------
 const canvas = document.getElementById('scene');
@@ -41,6 +42,7 @@ const input = new Input();
 const touch = new TouchControls(input);
 const hud = new HUD();
 const audio = new MotorAudio();
+const builder = new Builder(canvas, camera, world, () => backToMenu());
 
 const SPAWN = new THREE.Vector3(0, 0.08, 0);
 
@@ -141,6 +143,7 @@ function startMission(i) {
   missionIndex = i;
   mission = MISSIONS[i];
   applySettings();
+  world.setBlocks(mission.id === 'custom' ? loadCustomBlocks() : []);
   mission.setup(world);
   drone.reset(SPAWN.clone());
   input.zeroSticks();
@@ -156,7 +159,21 @@ function startMission(i) {
   hud.show();
   audio.ensureStarted();
   state = 'flying';
+  if (mission.id === 'custom' && world.blocks.size === 0) {
+    hud.setMessage('המפה ריקה — בנו אותה במצב הבנייה שבתפריט');
+  }
 }
+
+function enterBuilder() {
+  menuEl.classList.add('hidden');
+  completeEl.classList.add('hidden');
+  hud.hide();
+  state = 'builder';
+  builder.enter();
+  if (settings.device === 'mobile') enterMobileFullscreen();
+}
+
+document.getElementById('btn-builder').addEventListener('click', enterBuilder);
 
 function backToMenu() {
   state = 'menu';
@@ -272,6 +289,10 @@ function frame(now) {
     audio.update(drone, input.throttle);
 
     if (result.done) completeMission();
+  } else if (state === 'builder') {
+    if (input.menuPressed) builder.exit(); // saves and returns to menu
+    else builder.update(dt, input);
+    audio.update(drone, 0);
   } else {
     // Idle orbit behind the pad while in menus
     const t = now / 4000;

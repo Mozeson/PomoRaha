@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+export const BLOCK = 2; // builder cube size in meters
+
 // Builds the 3D environment: terrain, sky, obstacles, gates, drone mesh.
 export class World {
   constructor(scene) {
@@ -7,6 +9,15 @@ export class World {
     this.colliders = [];   // {box: THREE.Box3} for buildings/obstacles
     this.gateGroup = new THREE.Group();
     scene.add(this.gateGroup);
+
+    // Player-built blocks (builder mode / custom map)
+    this.blocksGroup = new THREE.Group();
+    scene.add(this.blocksGroup);
+    this.blocks = new Map(); // "gx,gy,gz" -> { mesh, box, cell }
+    this._blockGeo = new THREE.BoxGeometry(BLOCK, BLOCK, BLOCK);
+    this._blockEdges = new THREE.EdgesGeometry(this._blockGeo);
+    this._blockEdgeMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3 });
+    this._blockMats = new Map();
 
     this._buildLights();
     this._buildGround();
@@ -220,10 +231,74 @@ export class World {
     return hit.distanceTo(gate.pos) <= gate.radius;
   }
 
+  // --- Player-built blocks ---
+  blockKey(gx, gy, gz) { return `${gx},${gy},${gz}`; }
+
+  hasBlock(gx, gy, gz) { return this.blocks.has(this.blockKey(gx, gy, gz)); }
+
+  _blockMat(gy) {
+    const idx = Math.min(Math.max(gy, 0), 12);
+    if (!this._blockMats.has(idx)) {
+      // Color shifts with height so altitude is easy to read while flying
+      const color = new THREE.Color().setHSL(0.58 - idx * 0.045, 0.5, 0.55);
+      this._blockMats.set(idx, new THREE.MeshLambertMaterial({ color }));
+    }
+    return this._blockMats.get(idx);
+  }
+
+  addBlock(gx, gy, gz) {
+    const key = this.blockKey(gx, gy, gz);
+    if (this.blocks.has(key)) return null;
+    const mesh = new THREE.Mesh(this._blockGeo, this._blockMat(gy));
+    mesh.position.set(gx * BLOCK, gy * BLOCK + BLOCK / 2, gz * BLOCK);
+    mesh.castShadow = mesh.receiveShadow = true;
+    mesh.userData.cell = [gx, gy, gz];
+    const edges = new THREE.LineSegments(this._blockEdges, this._blockEdgeMat);
+    edges.raycast = () => {}; // never picked instead of the cube faces
+    mesh.add(edges);
+    this.blocksGroup.add(mesh);
+
+    const box = new THREE.Box3(
+      new THREE.Vector3(gx * BLOCK - BLOCK / 2, gy * BLOCK, gz * BLOCK - BLOCK / 2),
+      new THREE.Vector3(gx * BLOCK + BLOCK / 2, gy * BLOCK + BLOCK, gz * BLOCK + BLOCK / 2)
+    );
+    this.blocks.set(key, { mesh, box, cell: [gx, gy, gz] });
+    return mesh;
+  }
+
+  removeBlock(gx, gy, gz) {
+    const key = this.blockKey(gx, gy, gz);
+    const b = this.blocks.get(key);
+    if (!b) return false;
+    this.blocksGroup.remove(b.mesh);
+    this.blocks.delete(key);
+    return true;
+  }
+
+  clearBlocks() {
+    while (this.blocksGroup.children.length) {
+      this.blocksGroup.remove(this.blocksGroup.children[0]);
+    }
+    this.blocks.clear();
+  }
+
+  setBlocks(cells) {
+    this.clearBlocks();
+    for (const c of cells) this.addBlock(c[0], c[1], c[2]);
+  }
+
+  blockCells() {
+    return [...this.blocks.values()].map((b) => b.cell);
+  }
+
   /** Returns true if pos collides with any obstacle. */
   checkCollision(pos, r = 0.18) {
     for (const c of this.colliders) {
       const cl = c.box.clampPoint(pos, new THREE.Vector3());
+      if (cl.distanceToSquared(pos) < r * r) return true;
+    }
+    for (const b of this.blocks.values()) {
+      const cl = b.box.clampPoint(pos, new THREE.Vector3());
       if (cl.distanceToSquared(pos) < r * r) return true;
     }
     return false;

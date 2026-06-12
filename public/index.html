@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FPV Trainer — סימולטור אימון רחפן</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene"></canvas>
+
+  <!-- OSD / HUD -->
+  <div id="hud" class="hidden" dir="ltr">
+    <div id="osd-top">
+      <span id="osd-mode">ANGLE</span>
+      <span id="osd-armed">DISARMED</span>
+      <span id="osd-battery">4.2V 100%</span>
+    </div>
+    <div id="osd-center">
+      <div id="crosshair">+</div>
+      <div id="osd-message"></div>
+    </div>
+    <div id="osd-bottom">
+      <span id="osd-alt">ALT 0.0m</span>
+      <span id="osd-speed">SPD 0.0</span>
+      <span id="osd-timer">00:00</span>
+      <span id="osd-vspeed">VS 0.0</span>
+      <span id="osd-dist">HOME 0m</span>
+    </div>
+    <div id="mission-panel" dir="rtl">
+      <div id="mission-title"></div>
+      <div id="mission-objective"></div>
+      <div id="mission-progress"></div>
+    </div>
+    <!-- Stick position indicators (training aid) -->
+    <div class="stick-box" id="stick-left"><div class="stick-dot"></div><span>THR/YAW</span></div>
+    <div class="stick-box" id="stick-right"><div class="stick-dot"></div><span>PIT/ROL</span></div>
+  </div>
+
+  <!-- Main menu -->
+  <div id="menu">
+    <div class="menu-card">
+      <h1>FPV TRAINER</h1>
+      <p class="subtitle">סימולטור אימון לטיסת רחפן FPV — מהבסיס ועד מיומנות מתקדמת</p>
+
+      <div id="mission-list"></div>
+
+      <div class="menu-section">
+        <h2>הגדרות</h2>
+        <div class="setting-row">
+          <label>מצב טיסה</label>
+          <select id="set-flightmode">
+            <option value="angle">ANGLE — מיוצב (למתחילים)</option>
+            <option value="acro">ACRO — מצב Rate (כמו רחפן אמיתי)</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>רגישות (Rates)</label>
+          <select id="set-rates">
+            <option value="0.5">נמוכה — מתחילים</option>
+            <option value="0.75" selected>בינונית</option>
+            <option value="1.0">גבוהה — מתקדמים</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>זווית מצלמה</label>
+          <select id="set-camtilt">
+            <option value="10">10° — איטי</option>
+            <option value="20" selected>20° — רגיל</option>
+            <option value="35">35° — מירוץ</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="menu-section" id="controls-help">
+        <h2>שליטה</h2>
+        <table dir="rtl">
+          <tr><td>גז / פנייה (Yaw)</td><td class="keys">W S / A D</td></tr>
+          <tr><td>הטיה קדימה-אחורה / צדדים</td><td class="keys">חיצים</td></tr>
+          <tr><td>חימוש מנועים (ARM)</td><td class="keys">רווח</td></tr>
+          <tr><td>איפוס מיקום</td><td class="keys">R</td></tr>
+          <tr><td>חזרה לתפריט</td><td class="keys">ESC</td></tr>
+        </table>
+        <p class="gamepad-note" id="gamepad-status">🎮 חברו שלט (Gamepad/RC) לחוויה מלאה — Mode 2</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mission complete overlay -->
+  <div id="complete-overlay" class="hidden">
+    <div class="menu-card small">
+      <h1 id="complete-title">✓ המשימה הושלמה</h1>
+      <p id="complete-stats"></p>
+      <button id="btn-retry">נסו שוב</button>
+      <button id="btn-next">המשימה הבאה</button>
+      <button id="btn-menu">תפריט ראשי</button>
+    </div>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

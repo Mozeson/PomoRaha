@@ -1,148 +1,143 @@
 <!DOCTYPE html>
-<html lang="he" dir="rtl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="mobile-web-app-capable" content="yes">
-  <title>FPV Trainer — סימולטור אימון רחפן</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-      }
-    }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zettel — Online Zettelkasten</title>
+<link rel="stylesheet" href="/css/style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗃️</text></svg>">
 </head>
 <body>
-  <canvas id="scene"></canvas>
+<div id="app">
 
-  <!-- OSD / HUD -->
-  <div id="hud" class="hidden" dir="ltr">
-    <div id="osd-top">
-      <span id="osd-mode">ANGLE</span>
-      <span id="osd-armed">DISARMED</span>
-      <span id="osd-battery">4.2V 100%</span>
-    </div>
-    <div id="osd-center">
-      <div id="crosshair">+</div>
-      <div id="osd-message"></div>
-    </div>
-    <div id="osd-bottom">
-      <span id="osd-alt">ALT 0.0m</span>
-      <span id="osd-speed">SPD 0.0</span>
-      <span id="osd-timer">00:00</span>
-      <span id="osd-vspeed">VS 0.0</span>
-      <span id="osd-dist">HOME 0m</span>
-    </div>
-    <div id="mission-panel" dir="rtl">
-      <div id="mission-title"></div>
-      <div id="mission-objective"></div>
-      <div id="mission-progress"></div>
-    </div>
-    <!-- Stick position indicators (training aid) -->
-    <div class="stick-box" id="stick-left"><div class="stick-dot"></div><span>THR/YAW</span></div>
-    <div class="stick-box" id="stick-right"><div class="stick-dot"></div><span>PIT/ROL</span></div>
-
-    <!-- Touch controls (mobile mode) -->
-    <div id="touch-ui" class="hidden">
-      <div class="touch-stick" id="touch-left"><div class="touch-knob"></div><span>גז / פנייה</span></div>
-      <div class="touch-stick" id="touch-right"><div class="touch-knob"></div><span>הטיה</span></div>
-      <div id="touch-buttons">
-        <button id="tb-menu">☰</button>
-        <button id="tb-arm">ARM</button>
-        <button id="tb-reset">↺</button>
+  <!-- ============ LEFT SIDEBAR ============ -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="vault-title">
+        <span class="vault-icon">🗃️</span>
+        <span>Zettel</span>
+      </div>
+      <div class="sidebar-actions">
+        <button id="btn-new-note" class="icon-btn" title="New note (Ctrl+N)">＋</button>
+        <button id="btn-graph" class="icon-btn" title="Graph view (Ctrl+G)">◉</button>
+        <button id="btn-vault-menu" class="icon-btn" title="Vault options">⋯</button>
       </div>
     </div>
-    <div id="rotate-hint">🔄 סובבו את המכשיר לרוחב</div>
-  </div>
 
-  <!-- Main menu -->
-  <div id="menu">
-    <div class="menu-card">
-      <h1>FPV TRAINER</h1>
-      <p class="subtitle">סימולטור אימון לטיסת רחפן FPV — מהבסיס ועד מיומנות מתקדמת</p>
+    <div id="vault-menu" class="dropdown hidden">
+      <button data-action="export-vault">Export vault (.json)</button>
+      <button data-action="import-vault">Import vault (.json)</button>
+      <button data-action="export-note">Export current note (.md)</button>
+      <hr>
+      <button data-action="reset-vault" class="danger">Reset vault…</button>
+    </div>
 
-      <div class="menu-section">
-        <h2>על מה משחקים?</h2>
-        <div id="device-toggle">
-          <button class="device-btn" data-device="desktop">💻 מחשב</button>
-          <button class="device-btn" data-device="mobile">📱 פלאפון</button>
+    <div class="search-box">
+      <input id="search-input" type="text" placeholder="Search notes…" autocomplete="off">
+    </div>
+
+    <div id="type-filters" class="type-filters">
+      <button class="chip active" data-type="all">All</button>
+      <button class="chip chip-fleeting" data-type="fleeting" title="Quick capture of a passing idea">Fleeting</button>
+      <button class="chip chip-literature" data-type="literature" title="Notes on something you read/watched">Literature</button>
+      <button class="chip chip-permanent" data-type="permanent" title="One atomic idea in your own words">Permanent</button>
+      <button class="chip chip-index" data-type="index" title="Entry point / map of content">Index</button>
+    </div>
+
+    <div id="note-list" class="note-list"></div>
+
+    <div id="tag-pane" class="tag-pane">
+      <div class="pane-title">Tags</div>
+      <div id="tag-list" class="tag-list"></div>
+    </div>
+  </aside>
+
+  <!-- ============ MAIN AREA ============ -->
+  <main id="main">
+    <button id="btn-toggle-sidebar" class="icon-btn edge-toggle" title="Toggle sidebar">☰</button>
+
+    <!-- Note view -->
+    <section id="note-view">
+      <header class="note-header">
+        <div class="note-header-top">
+          <input id="note-title" type="text" placeholder="Untitled" autocomplete="off" spellcheck="false">
+          <div class="note-header-actions">
+            <select id="note-type" title="Zettelkasten note type">
+              <option value="fleeting">🌱 Fleeting</option>
+              <option value="literature">📖 Literature</option>
+              <option value="permanent">🧠 Permanent</option>
+              <option value="index">🗺️ Index</option>
+            </select>
+            <button id="btn-mode" class="icon-btn" title="Toggle edit/preview (Ctrl+E)">👁</button>
+            <button id="btn-delete" class="icon-btn" title="Delete note">🗑</button>
+          </div>
         </div>
-      </div>
-
-      <div id="mission-list"></div>
-
-      <div class="menu-section">
-        <h2>המפה שלי</h2>
-        <button id="btn-builder" class="wide-btn">🧱 מצב בנייה — הניחו קוביות בגבהים שונים ובנו מסלול משלכם</button>
-      </div>
-
-      <div class="menu-section">
-        <h2>הגדרות</h2>
-        <div class="setting-row">
-          <label>מצב טיסה</label>
-          <select id="set-flightmode">
-            <option value="angle">ANGLE — מיוצב (למתחילים)</option>
-            <option value="acro">ACRO — מצב Rate (כמו רחפן אמיתי)</option>
-          </select>
+        <div class="note-meta">
+          <span id="note-id" title="Zettel ID"></span>
+          <span id="note-dates"></span>
         </div>
-        <div class="setting-row">
-          <label>רגישות (Rates)</label>
-          <select id="set-rates">
-            <option value="0.5">נמוכה — מתחילים</option>
-            <option value="0.75" selected>בינונית</option>
-            <option value="1.0">גבוהה — מתקדמים</option>
-          </select>
-        </div>
-        <div class="setting-row">
-          <label>זווית מצלמה</label>
-          <select id="set-camtilt">
-            <option value="10">10° — איטי</option>
-            <option value="20" selected>20° — רגיל</option>
-            <option value="35">35° — מירוץ</option>
-          </select>
-        </div>
+      </header>
+
+      <div id="editor-wrap">
+        <textarea id="editor" dir="auto" placeholder="Write one idea. Link it with [[double brackets]]. Tag it with #tags." spellcheck="false"></textarea>
+        <div id="preview" class="markdown-body"></div>
+        <div id="autocomplete" class="dropdown hidden"></div>
       </div>
+    </section>
 
-      <div class="menu-section" id="controls-help">
-        <h2>שליטה</h2>
-        <table dir="rtl">
-          <tr><td>גז / פנייה (Yaw)</td><td class="keys">W S / A D</td></tr>
-          <tr><td>הטיה קדימה-אחורה / צדדים</td><td class="keys">חיצים</td></tr>
-          <tr><td>חימוש מנועים (ARM)</td><td class="keys">רווח</td></tr>
-          <tr><td>איפוס מיקום</td><td class="keys">R</td></tr>
-          <tr><td>חזרה לתפריט</td><td class="keys">ESC</td></tr>
-        </table>
-        <p id="touch-help">סטיק שמאלי — גז (למעלה/למטה) ופנייה (צדדים). סטיק ימני — הטיה לכל כיוון. ARM לחימוש המנועים, ↺ לאיפוס. מומלץ לסובב את המכשיר לרוחב.</p>
-        <p class="gamepad-note" id="gamepad-status">🎮 חברו שלט (Gamepad/RC) לחוויה מלאה — Mode 2</p>
+    <!-- Graph view -->
+    <section id="graph-view" class="hidden">
+      <canvas id="graph-canvas"></canvas>
+      <div class="graph-legend">
+        <span><i class="dot dot-fleeting"></i>Fleeting</span>
+        <span><i class="dot dot-literature"></i>Literature</span>
+        <span><i class="dot dot-permanent"></i>Permanent</span>
+        <span><i class="dot dot-index"></i>Index</span>
       </div>
-    </div>
-  </div>
+      <button id="btn-close-graph" class="icon-btn graph-close" title="Back to notes (Esc)">✕</button>
+    </section>
 
-  <!-- Map builder UI -->
-  <div id="builder-ui" class="hidden" dir="rtl">
-    <div id="builder-toolbar">
-      <button id="bld-place" class="tool selected">🧱 הנחה</button>
-      <button id="bld-delete" class="tool">❌ מחיקה</button>
-      <button id="bld-clear">🗑 נקה</button>
-      <span id="bld-count"></span>
-      <button id="bld-exit">✓ שמירה ויציאה</button>
-    </div>
-    <div id="builder-hint">הקשה — הנחה/מחיקה של קובייה · גרירה — סיבוב מבט · שתי אצבעות / גלגלת — זום · גרירה ימנית / WASD — תזוזה</div>
-  </div>
+    <!-- Empty state -->
+    <section id="empty-view" class="hidden">
+      <div class="empty-box">
+        <div class="empty-icon">🗃️</div>
+        <p>No note selected.</p>
+        <button id="btn-empty-new" class="primary-btn">Create a note</button>
+      </div>
+    </section>
 
-  <!-- Mission complete overlay -->
-  <div id="complete-overlay" class="hidden">
-    <div class="menu-card small">
-      <h1 id="complete-title">✓ המשימה הושלמה</h1>
-      <p id="complete-stats"></p>
-      <button id="btn-retry">נסו שוב</button>
-      <button id="btn-next">המשימה הבאה</button>
-      <button id="btn-menu">תפריט ראשי</button>
-    </div>
-  </div>
+    <footer id="status-bar">
+      <span id="status-counts"></span>
+      <span id="status-hint">Ctrl+N new · Ctrl+O quick switch · Ctrl+E edit/preview · Ctrl+G graph</span>
+    </footer>
+  </main>
 
-  <script type="module" src="js/main.js"></script>
+  <!-- ============ RIGHT PANEL ============ -->
+  <aside id="right-panel">
+    <div class="pane">
+      <div class="pane-title">Backlinks <span id="backlink-count" class="count"></span></div>
+      <div id="backlinks" class="link-pane"></div>
+    </div>
+    <div class="pane">
+      <div class="pane-title">Outgoing links <span id="outlink-count" class="count"></span></div>
+      <div id="outlinks" class="link-pane"></div>
+    </div>
+  </aside>
+</div>
+
+<!-- Quick switcher -->
+<div id="switcher-overlay" class="overlay hidden">
+  <div class="switcher">
+    <input id="switcher-input" type="text" placeholder="Jump to or create a note…" autocomplete="off">
+    <div id="switcher-results"></div>
+  </div>
+</div>
+
+<input type="file" id="import-file" accept=".json" class="hidden">
+
+<script src="/js/store.js"></script>
+<script src="/js/markdown.js"></script>
+<script src="/js/graph.js"></script>
+<script src="/js/app.js"></script>
 </body>
 </html>

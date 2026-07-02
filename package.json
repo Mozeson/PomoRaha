@@ -1,7 +1,7 @@
 {
-  "name": "fpv-trainer",
+  "name": "zettel",
   "version": "1.0.0",
-  "description": "FPV drone flight training simulator",
+  "description": "Online Obsidian-style Zettelkasten note-taking app",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"

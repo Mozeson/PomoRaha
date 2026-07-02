@@ -29,6 +29,7 @@
     switcherResults: $('#switcher-results'),
     importFile: $('#import-file'),
     modeBtn: $('#btn-mode'),
+    syncStatus: $('#sync-status'),
   };
 
   const state = {
@@ -557,6 +558,53 @@
     updateViews();
   }
 
+  // ---------------------------------------------------------------- sync
+
+  function bindSync() {
+    Store.onStatus((status) => {
+      const time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      if (status === 'syncing') el.syncStatus.textContent = '⟳ syncing…';
+      else if (status === 'synced') el.syncStatus.textContent = `✓ synced ${time}`;
+      else if (status === 'offline') el.syncStatus.textContent = '⚠ offline — saved locally';
+      else if (status === 'unauthorized') el.syncStatus.textContent = '🔒 token required — click to enter';
+      el.syncStatus.dataset.status = status;
+    });
+
+    Store.onRemoteChange(() => {
+      renderSidebar();
+      renderStatus();
+      const n = Store.get(state.currentId);
+      if (!n) {
+        // current note was deleted on another device
+        if (state.view === 'note') { state.currentId = null; updateViews(); }
+        return;
+      }
+      const typing = document.activeElement === el.editor || document.activeElement === el.title;
+      if (!typing && (el.editor.value !== n.content || el.title.value !== n.title)) {
+        el.editor.value = n.content;
+        el.title.value = n.title;
+        el.type.value = n.type;
+        el.dates.textContent = `created ${fmtDate(n.created)} · edited ${fmtDate(n.modified)}`;
+        if (state.mode === 'preview') renderPreview();
+        renderLinksPanel();
+      }
+      if (state.view === 'graph') Graph.start(Store.graphData());
+    });
+
+    el.syncStatus.addEventListener('click', () => {
+      if (el.syncStatus.dataset.status === 'unauthorized') {
+        const token = prompt('This vault requires an access token:');
+        if (token) Store.setToken(token);
+      }
+      Store.sync();
+    });
+
+    Store.sync();
+    setInterval(() => Store.sync(), 30000);
+    window.addEventListener('focus', () => Store.sync());
+    window.addEventListener('online', () => Store.sync());
+  }
+
   // ---------------------------------------------------------------- boot
 
   Store.load();
@@ -564,6 +612,7 @@
   if (window.innerWidth < 720) el.sidebar.classList.add('collapsed');
   Graph.init($('#graph-canvas'), (id) => { state.view = 'note'; openNote(id); });
   bind();
+  bindSync();
 
   const first = Store.findByTitle('Start Here') || sortedNotes()[0];
   if (first) {

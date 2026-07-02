@@ -1,0 +1,12 @@
+{
+  "name": "Zettel Capture",
+  "short_name": "Capture",
+  "description": "Quick capture of fleeting notes into your Zettelkasten",
+  "start_url": "/capture",
+  "display": "standalone",
+  "background_color": "#16161e",
+  "theme_color": "#16161e",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

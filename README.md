@@ -1,63 +1,62 @@
-# FPV Trainer 🚁
+# Zettel 🗃️
 
-סימולטור אימון לטיסת רחפן FPV שרץ בדפדפן — מהבסיס ועד מיומנות מתקדמת.
+An online, Obsidian-style note-taking app built around the **Zettelkasten** method — runs entirely in the browser, zero dependencies.
 
-## מה יש בפנים
+## Features
 
-- **פיזיקת רחפן ריאליסטית** — מודל Quadcopter עם דחף, גרר, סוללה (כולל נפילת מתח), והתרסקויות.
-- **שני מצבי טיסה**:
-  - `ANGLE` — מיוצב, למתחילים (הרחפן מתיישר לבד).
-  - `ACRO` — מצב Rate אמיתי, כמו רחפן FPV תחרותי. זו המיומנות שצריך לפתח.
-- **תוכנית אימון מדורגת** — ריחוף, שליטה בגובה, פניות (Yaw), סלאלום, ומסלול מירוץ עם שיאים אישיים.
-- **תמיכה בשלט (Gamepad / RC over USB)** — Mode 2, בדיוק כמו שלט רחפן אמיתי. מקלדת נתמכת גם.
-- **OSD אותנטי** — גובה, מהירות, מתח סוללה, טיימר, ומחווני סטיקים ללימוד.
-- **מצב בנייה** — עורך מפות: הנחת קוביות בגבהים שונים (הצמדה לפאות בסגנון מיינקראפט), שמירה אוטומטית, וטיסה חופשית במפה שבניתם.
+- **Markdown editor with live preview** — headings, bold/italic, `code`, fenced code blocks, quotes, lists, task lists (click to toggle), ==highlights==, tags.
+- **`[[Wikilinks]]`** — type `[[` for autocomplete; `[[Title|alias]]` supported; links to notes that don't exist yet are shown dashed and are created on click (exactly like Obsidian).
+- **Backlinks & outgoing links panel** — see every note that references the open note, with the surrounding context.
+- **Graph view** — force-directed graph of the whole vault on canvas: drag nodes, scroll to zoom, click to open a note.
+- **Zettelkasten note types** — 🌱 Fleeting · 📖 Literature · 🧠 Permanent · 🗺️ Index, color-coded in the list and the graph, with sidebar filters that double as a processing inbox.
+- **Zettel IDs** — every note gets a permanent Luhmann-style timestamp ID (`YYYYMMDDHHMM`) that never changes even when the title does.
+- **Quick switcher** (`Ctrl+O`) — jump to any note or create one by name.
+- **Search + #tags** — full-text sidebar search, clickable tags with counts.
+- **Local-first** — the vault lives in `localStorage`; export/import the whole vault as JSON, export single notes as `.md`.
+- **RTL friendly** — paragraphs use `dir="auto"`, so Hebrew notes render correctly.
 
-## שליטה
+The vault ships with starter notes that teach the Zettelkasten workflow (fleeting → literature → permanent → index).
 
-| פעולה | מקלדת | שלט (Mode 2) |
-|---|---|---|
-| גז (Throttle) | W / S | סטיק שמאלי ↑↓ |
-| פנייה (Yaw) | A / D | סטיק שמאלי ←→ |
-| הטיה קדימה/אחורה (Pitch) | חיצים ↑↓ | סטיק ימני ↑↓ |
-| הטיה צידית (Roll) | חיצים ←→ | סטיק ימני ←→ |
-| חימוש (ARM) | רווח | A / RT |
-| איפוס | R | Y |
-| תפריט | ESC | Start |
+## Keyboard shortcuts
 
-## הרצה מקומית
+| Action | Shortcut |
+|---|---|
+| New note | `Ctrl+N` |
+| Quick switcher | `Ctrl+O` / `Ctrl+P` |
+| Toggle edit / preview | `Ctrl+E` |
+| Graph view | `Ctrl+G` |
+| Focus search | `Ctrl+F` |
+| Wikilink autocomplete | type `[[` |
+
+## Run locally
 
 ```bash
 npm start
 # http://localhost:3000
 ```
 
-ללא תלויות — Node 18+ בלבד.
+No dependencies — Node 18+ only.
 
-## פריסה ל-Railway
+## Deploy
 
-1. חברו את הרפוזיטורי ב-[railway.app](https://railway.app) → New Project → Deploy from GitHub repo.
-2. Railway מזהה אוטומטית פרויקט Node ומריץ `npm start`. אין צורך בהגדרות נוספות.
-3. ב-Settings → Networking לחצו Generate Domain לקבלת כתובת ציבורית.
+Any static/Node host works (Railway, Render, Vercel…). Railway: New Project → Deploy from GitHub repo → Generate Domain. It auto-detects Node and runs `npm start`.
 
-## מבנה הקוד
+## Code layout
 
 ```
-server.js              שרת סטטי (ללא תלויות)
+server.js            zero-dependency static file server
 public/
-  index.html           UI, תפריטים, HUD
-  js/main.js           לולאת המשחק, מצלמת FPV, ניהול מצבים
-  js/drone.js          פיזיקת הרחפן (Angle/Acro, סוללה, התרסקות)
-  js/input.js          מקלדת + Gamepad (Mode 2)
-  js/world.js          סצנה, שטח, מכשולים, שערים וזיהוי מעבר
-  js/missions.js       תוכנית האימון
-  js/hud.js            OSD ומחווני סטיקים
-  js/audio.js          סאונד מנועים מסונתז
+  index.html         app shell: sidebar, editor, graph, panels, switcher
+  css/style.css      Obsidian-like dark theme
+  js/store.js        vault persistence, note model, link/tag extraction, seed notes
+  js/markdown.js     markdown renderer with wikilinks/tags/tasks extensions
+  js/graph.js        force-directed graph view (canvas)
+  js/app.js          UI controller: views, autocomplete, switcher, shortcuts
 ```
 
-## המשך פיתוח (רעיונות)
+## Ideas for later
 
-- מסלולים נוספים ומצב לילה / רוח.
-- תרגילי Acro מתקדמים (flips, power loops, split-S).
-- טבלת שיאים משותפת (דורש DB — Railway Postgres).
-- תמיכה במשקפות FPV אמיתיות דרך WebRTC.
+- Sync across devices (needs a backend + auth).
+- Unlinked mentions in the backlinks panel.
+- Local graph (neighbors of the current note only).
+- Daily notes & templates.
